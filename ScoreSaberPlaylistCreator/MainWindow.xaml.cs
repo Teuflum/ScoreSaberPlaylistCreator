@@ -75,7 +75,7 @@ namespace ScoreSaberPlaylistCreator
                             {
                                 Dispatcher.Invoke(() =>
                                 {
-                                    txtMain.AppendTextExt($"Got something weird back from scoresaber:{Environment.NewLine}{jsonResult}");
+                                    txtMain.AppendTextExt($"Got something weird back from ScoreSaber:{Environment.NewLine}{jsonResult}");
                                 });
                                 break;
                             }
@@ -117,7 +117,7 @@ namespace ScoreSaberPlaylistCreator
                                         {
                                             Dispatcher.Invoke(() =>
                                             {
-                                                txtMain.AppendTextExt($"Got something weird back from beatsaver:{Environment.NewLine}{jsonResult}");
+                                                txtMain.AppendTextExt($"Got something weird back from BeatSaver:{Environment.NewLine}{jsonResult}");
                                             });
                                             break;
                                         }
@@ -140,7 +140,7 @@ namespace ScoreSaberPlaylistCreator
                                         {
                                             txtMain.AppendTextExt($"Skipping {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
-                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}.");
+                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (NOT FOUND)");
                                         });
                                     }
                                 }
