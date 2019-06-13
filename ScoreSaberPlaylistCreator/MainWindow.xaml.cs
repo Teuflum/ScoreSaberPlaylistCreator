@@ -22,8 +22,11 @@ namespace ScoreSaberPlaylistCreator
         private string _userAgent = $"ScoreSaberPlaylistCreator/{App.Version}";
         private int _requestTimeout = 10000;
 
+        public int SongLimit { get; set; }
+
         public MainWindow()
         {
+            SongLimit = Properties.Settings.Default.SongLimit;
             InitializeComponent();
         }
 
@@ -32,12 +35,12 @@ namespace ScoreSaberPlaylistCreator
             Dispatcher.Invoke(() =>
             {
                 btnCreatePlaylist.IsEnabled = false;
-                numLimit.IsEnabled = false;
+                numSongLimit.IsEnabled = false;
             });
 
             BackgroundWorker bg = new BackgroundWorker();
             _songlist = new List<PlaylistSong>();
-            int limit = numLimit.Value.Value;
+            int limit = numSongLimit.Value.Value;
 
             Dispatcher.Invoke(() =>
             {
@@ -180,7 +183,7 @@ namespace ScoreSaberPlaylistCreator
                 Dispatcher.Invoke(() =>
                 {
                     btnCreatePlaylist.IsEnabled = true;
-                    numLimit.IsEnabled = true;
+                    numSongLimit.IsEnabled = true;
                 });
             };
 
@@ -193,6 +196,12 @@ namespace ScoreSaberPlaylistCreator
             {
                 BtnCreatePlaylist_Click(this, null);
             }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Properties.Settings.Default.SongLimit = numSongLimit.Value ?? Properties.Settings.Default.SongLimit;
+            Properties.Settings.Default.Save();
         }
     }
 }
