@@ -127,20 +127,34 @@ namespace ScoreSaberPlaylistCreator
                                     {
                                         txtMain.AppendTextExt($"Adding {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
-                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}.");
+                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName} ({song.stars}⭐).");
                                         prgMain.Value++;
                                     });
                                 }
                                 catch (WebException we)
                                 {
                                     HttpWebResponse errorResponse = we.Response as HttpWebResponse;
-                                    if(errorResponse.StatusCode == HttpStatusCode.NotFound)
+                                    if (errorResponse != null && errorResponse.StatusCode == HttpStatusCode.NotFound)
                                     {
                                         Dispatcher.Invoke(() =>
                                         {
                                             txtMain.AppendTextExt($"Skipping {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
                                         $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (NOT FOUND)");
+                                        });
+                                    }
+                                    else if (we.HResult == -2146233079)
+                                    {
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            txtMain.AppendTextExt($"Reached the timeout of {Math.Round(_requestTimeout / 1000.0, 2)} seconds, trying again...");
+                                        });
+                                    }
+                                    else
+                                    {
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            txtMain.AppendTextExt($"The following error occured: {we.Message}{Environment.NewLine}{we.StackTrace}");
                                         });
                                     }
                                 }
