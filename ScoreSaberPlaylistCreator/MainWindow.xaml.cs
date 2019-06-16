@@ -22,8 +22,15 @@ namespace ScoreSaberPlaylistCreator
         private string _userAgent = $"ScoreSaberPlaylistCreator/{App.Version}";
         private int _requestTimeout = 10000;
 
+        public int SongLimit { get; set; }
+        public string BeatSaberPath { get; set; }
+
         public MainWindow()
         {
+            DataContext = this;
+            SongLimit = App.SongLimit;
+            BeatSaberPath = App.BeatSaberPath;
+
             InitializeComponent();
         }
 
@@ -186,9 +193,9 @@ namespace ScoreSaberPlaylistCreator
 
                 _playlist = new Playlist(_songlist);
 
-                if (!Directory.Exists("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists"))
-                    Directory.CreateDirectory("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists");
-                File.WriteAllText(Path.Combine("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists", "RankedSongs.json"),
+                if (!Directory.Exists(Path.Combine(BeatSaberPath,"Playlists")))
+                    Directory.CreateDirectory(Path.Combine(BeatSaberPath, "Playlists"));
+                File.WriteAllText(Path.Combine(BeatSaberPath, "Playlists", "RankedSongs.json"),
                     JsonConvert.SerializeObject(_playlist, Formatting.None), new UTF8Encoding(false));
 
                 Dispatcher.Invoke(() =>
@@ -207,6 +214,13 @@ namespace ScoreSaberPlaylistCreator
             {
                 BtnCreatePlaylist_Click(this, null);
             }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Properties.Settings.Default.SongLimit = SongLimit;
+            Properties.Settings.Default.BeatSaberPath = BeatSaberPath;
+            Properties.Settings.Default.Save();
         }
     }
 }

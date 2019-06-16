@@ -22,5 +22,29 @@ namespace ScoreSaberPlaylistCreator.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public int SongLimit {
+            get {
+                return ((int)(this["SongLimit"]));
+            }
+            set {
+                this["SongLimit"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber")]
+        public string BeatSaberPath {
+            get {
+                return ((string)(this["BeatSaberPath"]));
+            }
+            set {
+                this["BeatSaberPath"] = value;
+            }
+        }
     }
 }
