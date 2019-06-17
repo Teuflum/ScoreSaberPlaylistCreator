@@ -23,10 +23,14 @@ namespace ScoreSaberPlaylistCreator
         private int _requestTimeout = 10000;
 
         public int SongLimit { get; set; }
+        public string BeatSaberPath { get; set; }
 
         public MainWindow()
         {
-            SongLimit = Properties.Settings.Default.SongLimit;
+            DataContext = this;
+            SongLimit = App.SongLimit;
+            BeatSaberPath = App.BeatSaberPath;
+
             InitializeComponent();
         }
 
@@ -35,12 +39,12 @@ namespace ScoreSaberPlaylistCreator
             Dispatcher.Invoke(() =>
             {
                 btnCreatePlaylist.IsEnabled = false;
-                numSongLimit.IsEnabled = false;
+                numLimit.IsEnabled = false;
             });
 
             BackgroundWorker bg = new BackgroundWorker();
             _songlist = new List<PlaylistSong>();
-            int limit = numSongLimit.Value.Value;
+            int limit = numLimit.Value.Value;
 
             Dispatcher.Invoke(() =>
             {
@@ -130,20 +134,34 @@ namespace ScoreSaberPlaylistCreator
                                     {
                                         txtMain.AppendTextExt($"Adding {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
-                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}.");
+                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName} ({song.stars}⭐).");
                                         prgMain.Value++;
                                     });
                                 }
                                 catch (WebException we)
                                 {
                                     HttpWebResponse errorResponse = we.Response as HttpWebResponse;
-                                    if(errorResponse.StatusCode == HttpStatusCode.NotFound)
+                                    if (errorResponse != null && errorResponse.StatusCode == HttpStatusCode.NotFound)
                                     {
                                         Dispatcher.Invoke(() =>
                                         {
                                             txtMain.AppendTextExt($"Skipping {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
                                         $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (NOT FOUND)");
+                                        });
+                                    }
+                                    else if (we.HResult == -2146233079)
+                                    {
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            txtMain.AppendTextExt($"Reached the timeout of {Math.Round(_requestTimeout / 1000.0, 2)} seconds, trying again...");
+                                        });
+                                    }
+                                    else
+                                    {
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            txtMain.AppendTextExt($"The following error occured: {we.Message}{Environment.NewLine}{we.StackTrace}");
                                         });
                                     }
                                 }
@@ -175,15 +193,15 @@ namespace ScoreSaberPlaylistCreator
 
                 _playlist = new Playlist(_songlist);
 
-                if (!Directory.Exists("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists"))
-                    Directory.CreateDirectory("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists");
-                File.WriteAllText(Path.Combine("C:\\Program Files (x86)\\Steam\\steamapps\\common\\Beat Saber\\Playlists", "RankedSongs.json"),
+                if (!Directory.Exists(Path.Combine(BeatSaberPath,"Playlists")))
+                    Directory.CreateDirectory(Path.Combine(BeatSaberPath, "Playlists"));
+                File.WriteAllText(Path.Combine(BeatSaberPath, "Playlists", "RankedSongs.json"),
                     JsonConvert.SerializeObject(_playlist, Formatting.None), new UTF8Encoding(false));
 
                 Dispatcher.Invoke(() =>
                 {
                     btnCreatePlaylist.IsEnabled = true;
-                    numSongLimit.IsEnabled = true;
+                    numLimit.IsEnabled = true;
                 });
             };
 
@@ -200,7 +218,8 @@ namespace ScoreSaberPlaylistCreator
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            Properties.Settings.Default.SongLimit = numSongLimit.Value ?? Properties.Settings.Default.SongLimit;
+            Properties.Settings.Default.SongLimit = SongLimit;
+            Properties.Settings.Default.BeatSaberPath = BeatSaberPath;
             Properties.Settings.Default.Save();
         }
     }

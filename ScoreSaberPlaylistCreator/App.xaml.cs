@@ -15,5 +15,7 @@ namespace ScoreSaberPlaylistCreator
     public partial class App : Application
     {
         public static string Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        public static int SongLimit = ScoreSaberPlaylistCreator.Properties.Settings.Default.SongLimit;
+        public static string BeatSaberPath = ScoreSaberPlaylistCreator.Properties.Settings.Default.BeatSaberPath;
     }
 }
