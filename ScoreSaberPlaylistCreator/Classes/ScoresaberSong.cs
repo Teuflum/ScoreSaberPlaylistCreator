@@ -15,7 +15,7 @@ namespace ScoreSaberPlaylistCreator.Classes
         public string songSubName { get; set; }
         public string songAuthorName { get; set; }
         public string levelAuthorName { get; set; }
-        public int bpm { get; set; }
+        public double bpm { get; set; }
         public string diff { get; set; }
         public string scores { get; set; }
         public int scores_day { get; set; }

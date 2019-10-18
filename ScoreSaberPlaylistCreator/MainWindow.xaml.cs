@@ -59,33 +59,25 @@ namespace ScoreSaberPlaylistCreator
                 while (_songlist.Count < limit)
                 {
                     var uri = new Uri($"http://scoresaber.com/api.php?function=get-leaderboards&cat=3&page={page + 1}&limit={pageLimit}&ranked=1");
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-                    request.Timeout = _requestTimeout;
-                    request.UserAgent = _userAgent;
-                    request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                    WebClient client = new WebClient();
+                    client.Headers.Add(HttpRequestHeader.UserAgent, _userAgent);
                     ScoresaberSongRootObject songList;
                     Dispatcher.Invoke(() => txtMain.AppendTextExt($"Trying to get page {page + 1} of ranked songs ({pageLimit} limit) from ScoreSaber..."));
                     try
                     {
-                        using (var response = (HttpWebResponse)request.GetResponse())
+                        string jsonResult = "";
+                        jsonResult = await client.DownloadStringTaskAsync(uri);
+                        try
                         {
-                            string jsonResult = "";
-                            using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                            songList = JsonConvert.DeserializeObject<ScoresaberSongRootObject>(jsonResult);
+                        }
+                        catch
+                        {
+                            Dispatcher.Invoke(() =>
                             {
-                                jsonResult = await sr.ReadToEndAsync();
-                            }
-                            try
-                            {
-                                songList = JsonConvert.DeserializeObject<ScoresaberSongRootObject>(jsonResult);
-                            }
-                            catch
-                            {
-                                Dispatcher.Invoke(() =>
-                                {
-                                    txtMain.AppendTextExt($"Got something weird back from ScoreSaber:{Environment.NewLine}{jsonResult}");
-                                });
-                                break;
-                            }
+                                txtMain.AppendTextExt($"Got something weird back from ScoreSaber:{Environment.NewLine}{jsonResult}");
+                            });
+                            break;
                         }
                         foreach (var song in songList.songs)
                         {
@@ -103,31 +95,22 @@ namespace ScoreSaberPlaylistCreator
                             else
                             {
                                 BeatsaverSong beatsaverSong;
-                                request = (HttpWebRequest)WebRequest.Create($"https://beatsaver.com/api/maps/by-hash/{song.id}");
-                                request.Timeout = _requestTimeout;
-                                request.UserAgent = _userAgent;
-                                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
                                 try
                                 {
-                                    using (var response = (HttpWebResponse)request.GetResponse())
+                                    var jsonResultBeatsaver = "";
+                                    jsonResultBeatsaver = await client.DownloadStringTaskAsync($"https://beatsaver.com/api/maps/by-hash/{song.id}");
+                                    try
                                     {
-                                        var jsonResult = "";
-                                        using (StreamReader sr = new StreamReader(response.GetResponseStream()))
+                                        beatsaverSong = JsonConvert.DeserializeObject<BeatsaverSong>(jsonResultBeatsaver);
+                                    }
+                                    catch
+                                    {
+                                        Dispatcher.Invoke(() =>
                                         {
-                                            jsonResult = await sr.ReadToEndAsync();
-                                        }
-                                        try
-                                        {
-                                            beatsaverSong = JsonConvert.DeserializeObject<BeatsaverSong>(jsonResult);
-                                        }
-                                        catch
-                                        {
-                                            Dispatcher.Invoke(() =>
-                                            {
-                                                txtMain.AppendTextExt($"Got something weird back from BeatSaver:{Environment.NewLine}{jsonResult}");
-                                            });
-                                            break;
-                                        }
+                                            txtMain.AppendTextExt($"Got something weird back from BeatSaver:{Environment.NewLine}{jsonResultBeatsaver}");
+                                        });
+                                        break;
                                     }
                                     _songlist.Add(new PlaylistSong(song.name, beatsaverSong.key, song.id));
                                     Dispatcher.Invoke(() =>
@@ -193,7 +176,7 @@ namespace ScoreSaberPlaylistCreator
 
                 _playlist = new Playlist(_songlist);
 
-                if (!Directory.Exists(Path.Combine(BeatSaberPath,"Playlists")))
+                if (!Directory.Exists(Path.Combine(BeatSaberPath, "Playlists")))
                     Directory.CreateDirectory(Path.Combine(BeatSaberPath, "Playlists"));
                 File.WriteAllText(Path.Combine(BeatSaberPath, "Playlists", "RankedSongs.json"),
                     JsonConvert.SerializeObject(_playlist, Formatting.None), new UTF8Encoding(false));
