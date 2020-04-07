@@ -99,6 +99,7 @@ namespace ScoreSaberPlaylistCreator
                                 try
                                 {
                                     var jsonResultBeatsaver = "";
+                                    client.Headers.Add(HttpRequestHeader.UserAgent, _userAgent);
                                     jsonResultBeatsaver = await client.DownloadStringTaskAsync($"https://beatsaver.com/api/maps/by-hash/{song.id}");
                                     try
                                     {
@@ -130,7 +131,16 @@ namespace ScoreSaberPlaylistCreator
                                         {
                                             txtMain.AppendTextExt($"Skipping {song.name} " +
                                         $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
-                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (NOT FOUND)");
+                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (404 NOT FOUND)");
+                                        });
+                                    }
+                                    else if(errorResponse.StatusCode == HttpStatusCode.Forbidden)
+                                    {
+                                        Dispatcher.Invoke(() =>
+                                        {
+                                            txtMain.AppendTextExt($"Skipping {song.name} " +
+                                        $"{(String.IsNullOrWhiteSpace(song.songSubName) ? "" : song.songSubName + " ")}" +
+                                        $"- {song.songAuthorName} mapped by {song.levelAuthorName}. (403 FORBIDDEN)");
                                         });
                                     }
                                     else if (we.HResult == -2146233079)
